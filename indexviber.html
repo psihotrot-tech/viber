@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>Komercio Lager Viber</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: one phone-width column — the list sent over from the Claude page as a call sheet,
+   with a fixed bottom bar pointing at the next unsent shop. */
+:root {
+  --bg: #EEF0F5; --surface: #FAFBFD; --ink: #141A2B; --muted: #59627A; --line: #D3D8E4;
+  --accent: #2443C7; --on-accent: #FFFFFF; --accent-soft: #E1E6FA;
+  --done: #1B7347; --done-soft: #DDF1E5;
+  --font-display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-data: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0F121B; --surface: #181C29; --ink: #E8EBF4; --muted: #9BA4BA; --line: #2B3145;
+    --accent: #8FA4FF; --on-accent: #0D1120; --accent-soft: #222A4A;
+    --done: #62CC92; --done-soft: #15301F;
+    color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body {
+  margin: 0; background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.45;
+  padding-inline: 16px;
+  padding-block: calc(20px + env(safe-area-inset-top, 0px)) calc(132px + env(safe-area-inset-bottom, 0px));
+}
+.page { max-width: 620px; margin-inline: auto; display: flex; flex-direction: column; gap: 18px; }
+.eyebrow { font-size: 12px; letter-spacing: .09em; text-transform: uppercase; color: var(--muted); font-weight: 600; margin: 0; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: 30px; line-height: 1.1; margin: 0; text-wrap: balance; }
+.head { display: flex; flex-direction: column; gap: 6px; }
+.progress { display: flex; flex-direction: column; gap: 8px; }
+.count { font-family: var(--font-data); font-variant-numeric: tabular-nums; font-size: 15px; }
+.count b { font-size: 22px; font-weight: 500; }
+.track { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.track i { display: block; height: 100%; width: 0; background: var(--done); transition: width .25s ease; }
+.steps { margin: 0; color: var(--muted); font-size: 14px; }
+details.msg { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; }
+details.msg summary { cursor: pointer; padding: 12px 14px; font-weight: 600; font-size: 15px; }
+details.msg .inner { display: flex; flex-direction: column; gap: 10px; padding: 0 14px 14px; }
+.msg-text { white-space: pre-wrap; margin: 0; font-size: 15px; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; }
+button.ghost {
+  font: inherit; font-size: 14px; font-weight: 500; color: var(--ink);
+  background: transparent; border: 1px solid var(--line); border-radius: 8px;
+  padding: 9px 12px; cursor: pointer; min-height: 44px; align-self: flex-start;
+}
+button.ghost:active { background: var(--accent-soft); }
+.state { background: var(--surface); border: 1px dashed var(--line); border-radius: 10px; padding: 18px 16px; color: var(--muted); font-size: 15px; }
+.state b { color: var(--ink); display: block; margin-bottom: 4px; }
+ol.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; border-top: 1px solid var(--line); }
+li.row { display: grid; grid-template-columns: 44px minmax(0, 1fr); column-gap: 12px; row-gap: 10px; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.pri {
+  width: 44px; height: 44px; border-radius: 6px; display: grid; place-items: center;
+  font-family: var(--font-data); font-size: 15px; font-weight: 500;
+  border: 1.5px solid var(--line); color: var(--muted);
+}
+.who { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.who strong { font-weight: 600; font-size: 16px; overflow-wrap: anywhere; }
+.meta { color: var(--muted); font-size: 14px; }
+.num { font-family: var(--font-data); font-variant-numeric: tabular-nums; color: var(--ink); user-select: all; -webkit-user-select: all; }
+.acts { grid-column: 1 / -1; display: flex; gap: 8px; align-items: stretch; flex-wrap: wrap; }
+a.go {
+  flex: 1 1 150px; display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 14px; border-radius: 8px;
+  background: var(--accent); color: var(--on-accent);
+  font-weight: 600; font-size: 15px; text-decoration: none;
+}
+a.go:active { filter: brightness(.92); }
+label.chk {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px;
+  border: 1px solid var(--line); border-radius: 8px; font-size: 14px; font-weight: 500; cursor: pointer;
+}
+label.chk input { width: 20px; height: 20px; accent-color: var(--done); margin: 0; }
+li.row.sent .who strong, li.row.sent .meta, li.row.sent .num { color: var(--muted); }
+li.row.sent .pri { border-color: var(--done); color: var(--done); background: var(--done-soft); }
+li.row.sent a.go { background: transparent; color: var(--muted); border: 1px solid var(--line); }
+li.row.sent label.chk { border-color: var(--done); color: var(--done); background: var(--done-soft); }
+.foot { color: var(--muted); font-size: 13px; margin: 0; }
+.bar {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  background: var(--surface); border-top: 1px solid var(--line);
+  padding: 12px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+.bar-in { max-width: 620px; margin-inline: auto; display: flex; gap: 12px; align-items: center; }
+.next { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; }
+.next small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.next span { font-weight: 600; overflow-wrap: anywhere; }
+.bar a.go { flex: 0 0 auto; min-height: 48px; padding-inline: 18px; }
+.toast {
+  position: fixed; left: 16px; right: 16px; bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+  max-width: 588px; margin-inline: auto; padding: 10px 14px; border-radius: 8px;
+  background: var(--ink); color: var(--bg); font-size: 14px; text-align: center;
+}
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .track i { transition: none; } }
+</style>
+</head>
+<body>
+<div class="page">
+  <header class="head">
+    <p class="eyebrow">Komercio Lager · farbare</p>
+    <h1>Slanje preko Vibera</h1>
+  </header>
+
+  <section class="progress" aria-label="Napredak">
+    <span class="count"><b id="cnt-sent">0</b> / <span id="cnt-all">0</span> poslato</span>
+    <div class="track"><i id="bar-fill"></i></div>
+  </section>
+
+  <p class="steps">Tapni <b>Otvori Viber</b>. Poruka se upiše u chat, a ako se ne upiše, već je kopirana pa je samo nalepi. Pošalji, vrati se ovde i štikliraj <b>Poslato</b>.</p>
+
+  <details class="msg">
+    <summary>Tekst poruke</summary>
+    <div class="inner">
+      <p class="msg-text" id="msg-text"></p>
+      <button class="ghost" type="button" id="copy-msg">Kopiraj poruku</button>
+    </div>
+  </details>
+
+  <div id="list-box"></div>
+
+  <p class="foot">Lista stiže sa stranice u Claude-u. Oznake na ovoj stranici pamte se samo u ovom pregledaču.</p>
+</div>
+
+<div class="bar">
+  <div class="bar-in">
+    <div class="next"><small id="next-label">Sledeća</small><span id="next-name">…</span></div>
+    <a class="go" id="next-go" href="#" hidden>Otvori Viber</a>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+(function () {
+  var DEFAULT_MSG = [
+    "Dobar dan.",
+    "Napravio sam program baš za farbare — iz Vašeg postojećeg lagera pokazuje šta je ispod minimuma i olakšava pravljenje porudžbine po dobavljačima. Veoma je jednostavan za upotrebu i ukoliko se kod vas porudžbine robe ručno prate i se pravi spisak šta treba naručiti.",
+    "Ako vam je zanimljivo, mogu vam za 5 minuta pokazati kako radi."
+  ].join("\n");
+
+  var store = {
+    get: function (k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+  };
+  var K_LAST = "kl-bridge-last", K_SENT = "kl-bridge-sent";
+
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, text) { var n = document.createElement(tag); if (cls) n.className = cls; if (text != null) n.textContent = text; return n; }
+
+  // The Claude page hands the list over as ?d=<base64url JSON {m: message, s: [[tel, firma, grad], ...], a: tel to open at once}>
+  function decode(raw) {
+    try {
+      var s = raw.replace(/-/g, "+").replace(/_/g, "/"); while (s.length % 4) s += "=";
+      var bin = atob(s), bytes = new Uint8Array(bin.length);
+      for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      var p = JSON.parse(new TextDecoder().decode(bytes));
+      if (!p || !Array.isArray(p.s)) return null;
+      var shops = p.s.filter(function (r) { return Array.isArray(r) && /^381\d{8,10}$/.test(String(r[0])); })
+                     .map(function (r) { return { tel: String(r[0]), firma: String(r[1] || "(bez naziva)"), grad: String(r[2] || "") }; });
+      return { m: typeof p.m === "string" && p.m.trim() ? p.m : DEFAULT_MSG, s: shops, a: /^381\d{8,10}$/.test(String(p.a)) ? String(p.a) : "" };
+    } catch (e) { return null; }
+  }
+  function fromUrl() {
+    var raw = "";
+    try { raw = new URLSearchParams(location.search).get("d") || ""; } catch (e) {}
+    if (!raw) { var m = /[#&]d=([^&]+)/.exec(location.hash); if (m) raw = m[1]; }
+    return raw;
+  }
+
+  var raw = fromUrl(), fresh = !!raw;
+  var data = raw ? decode(raw) : null;
+  if (data && data.s.length) store.set(K_LAST, raw);
+  else { var last = store.get(K_LAST, ""); data = last ? decode(last) : null; fresh = false; }
+  var shops = data ? data.s : [], msg = data ? data.m : DEFAULT_MSG;
+  var sent = store.get(K_SENT, {}); if (!sent || typeof sent !== "object") sent = {};
+
+  function pretty(tel) { var r = tel.replace(/^381/, ""); return "+381 " + r.slice(0, 2) + " " + r.slice(2, 5) + " " + r.slice(5); }
+  function link(shop) { return "viber://chat?number=%2B" + shop.tel + "&draft=" + encodeURIComponent(msg); }
+
+  function legacyCopy(text) {
+    var t = document.createElement("textarea");
+    t.value = text; t.setAttribute("readonly", "");
+    t.style.position = "fixed"; t.style.top = "0"; t.style.opacity = "0";
+    document.body.appendChild(t); t.select();
+    var ok = false; try { ok = document.execCommand("copy"); } catch (e) {}
+    t.remove(); return ok;
+  }
+  function copy(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      return navigator.clipboard.writeText(text).then(function () { return true; }, function () { return legacyCopy(text); });
+    }
+    return Promise.resolve(legacyCopy(text));
+  }
+  var toastEl = $("toast"), toastTimer;
+  function toast(text) {
+    toastEl.textContent = text; toastEl.hidden = false;
+    clearTimeout(toastTimer); toastTimer = setTimeout(function () { toastEl.hidden = true; }, 2600);
+  }
+  function onOpen() {
+    copy(msg).then(function (ok) { toast(ok ? "Poruka kopirana. Ako je Viber ne upiše sam, nalepi je." : "Kopiranje nije uspelo. Kopiraj poruku ručno iz polja gore."); });
+  }
+
+  var nextShop = null;
+  function render() {
+    var box = $("list-box"); box.textContent = "";
+    nextShop = null;
+    if (!shops.length) {
+      var st = el("div", "state");
+      st.appendChild(el("b", null, "Nema liste za slanje"));
+      st.appendChild(document.createTextNode("Otvori ovu stranicu dugmetom „Otvori listu za slanje” na stranici Komercio Lager Viber u Claude-u."));
+      box.appendChild(st);
+    } else {
+      var ol = el("ol", "list");
+      shops.forEach(function (shop, i) {
+        var isSent = !!sent[shop.tel];
+        if (!nextShop && !isSent) nextShop = shop;
+        var li = el("li", "row" + (isSent ? " sent" : ""));
+        li.appendChild(el("span", "pri", String(i + 1)));
+        var who = el("div", "who");
+        who.appendChild(el("strong", null, shop.firma));
+        var meta = el("span", "meta", shop.grad + " · ");
+        meta.appendChild(el("span", "num", pretty(shop.tel)));
+        who.appendChild(meta);
+        var acts = el("div", "acts");
+        var go = el("a", "go", "Otvori Viber"); go.href = link(shop);
+        go.addEventListener("click", onOpen);
+        var lab = el("label", "chk");
+        var cb = document.createElement("input"); cb.type = "checkbox"; cb.id = "sent-" + shop.tel; cb.checked = isSent;
+        cb.addEventListener("change", function () {
+          if (cb.checked) sent[shop.tel] = 1; else delete sent[shop.tel];
+          store.set(K_SENT, sent); render();
+        });
+        lab.appendChild(cb); lab.appendChild(document.createTextNode("Poslato"));
+        acts.appendChild(go); acts.appendChild(lab);
+        li.appendChild(who);
+        li.appendChild(acts);
+        ol.appendChild(li);
+      });
+      box.appendChild(ol);
+    }
+    var nSent = shops.filter(function (s) { return sent[s.tel]; }).length;
+    $("cnt-sent").textContent = nSent; $("cnt-all").textContent = shops.length;
+    $("bar-fill").style.width = (shops.length ? 100 * nSent / shops.length : 0) + "%";
+    var label = $("next-label"), name = $("next-name"), nextGo = $("next-go");
+    if (nextShop) { label.textContent = "Sledeća"; name.textContent = nextShop.firma + ", " + nextShop.grad; nextGo.href = link(nextShop); nextGo.hidden = false; }
+    else { nextGo.hidden = true; label.textContent = shops.length ? "Gotovo" : "Sledeća"; name.textContent = shops.length ? "Sve sa ove liste je označeno." : "Čeka se lista"; }
+  }
+
+  $("next-go").addEventListener("click", function (e) { if (!nextShop) { e.preventDefault(); return; } onOpen(); });
+  $("msg-text").textContent = msg;
+  $("copy-msg").addEventListener("click", function () { copy(msg).then(function (ok) { toast(ok ? "Poruka kopirana." : "Kopiranje nije uspelo."); }); });
+  render();
+
+  // Opened for one shop from the Claude page: try to jump straight into Viber, once.
+  if (fresh && data && data.a) {
+    var target = shops.filter(function (s) { return s.tel === data.a; })[0], flag = "kl-auto-" + data.a, done = false;
+    try { done = sessionStorage.getItem(flag) === "1"; sessionStorage.setItem(flag, "1"); } catch (e) {}
+    if (target && !done) setTimeout(function () { location.href = link(target); }, 250);
+  }
+})();
+</script>
+</body>
+</html>
